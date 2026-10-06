@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>llmtrack // Observability Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-heading: #f0f6fc;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --red: #f85149;
+            --yellow: #d29922;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 24px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            margin: 0;
+            color: var(--text-heading);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            background: #238636;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 16px;
+            color: var(--text-heading);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            color: var(--text-heading);
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .cost { color: var(--green); font-weight: 600; }
+        .error { color: var(--red); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span>⚡</span> llmtrack Dashboard</h1>
+        <div class="badge">SQLite WAL Mode Active</div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Cost & Volume by Day</h2>
+            <div id="cost-table-container"></div>
+        </div>
+        <div class="card">
+            <h2>p95 Latency by Model</h2>
+            <div id="p95-table-container"></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Top 10 Most Expensive Tags</h2>
+            <div id="tags-table-container"></div>
+        </div>
+        <div class="card">
+            <h2>Error & Retry Rates</h2>
+            <div id="errors-table-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const data = {"Cost & Volume Per Day": [{"day": "2026-10-06", "model": "claude-3-5-sonnet", "calls": 9, "in_tok": 10478, "out_tok": 6328, "cost_usd": 0.1264}, {"day": "2026-10-06", "model": "gpt-4o", "calls": 8, "in_tok": 8948, "out_tok": 2987, "cost_usd": 0.0522}, {"day": "2026-10-06", "model": "o3-mini", "calls": 7, "in_tok": 8864, "out_tok": 5892, "cost_usd": 0.0357}, {"day": "2026-10-06", "model": "claude-3-5-haiku", "calls": 12, "in_tok": 8642, "out_tok": 2297, "cost_usd": 0.0161}, {"day": "2026-10-06", "model": "deepseek-chat", "calls": 8, "in_tok": 5722, "out_tok": 1701, "cost_usd": 0.0034}, {"day": "2026-10-06", "model": "gpt-4o-mini", "calls": 6, "in_tok": 5599, "out_tok": 1428, "cost_usd": 0.0017}, {"day": "2026-10-05", "model": "claude-3-5-sonnet", "calls": 30, "in_tok": 49617, "out_tok": 21497, "cost_usd": 0.4713}, {"day": "2026-10-05", "model": "o3-mini", "calls": 37, "in_tok": 55710, "out_tok": 29117, "cost_usd": 0.1894}, {"day": "2026-10-05", "model": "gpt-4o", "calls": 20, "in_tok": 21686, "out_tok": 10035, "cost_usd": 0.1546}, {"day": "2026-10-05", "model": "claude-3-5-haiku", "calls": 29, "in_tok": 20132, "out_tok": 5025, "cost_usd": 0.0362}, {"day": "2026-10-05", "model": "deepseek-chat", "calls": 29, "in_tok": 25922, "out_tok": 7915, "cost_usd": 0.0157}, {"day": "2026-10-05", "model": "gpt-4o-mini", "calls": 19, "in_tok": 12640, "out_tok": 4975, "cost_usd": 0.0049}, {"day": "2026-10-04", "model": "claude-3-5-sonnet", "calls": 27, "in_tok": 40309, "out_tok": 13763, "cost_usd": 0.3274}, {"day": "2026-10-04", "model": "o3-mini", "calls": 40, "in_tok": 55612, "out_tok": 30425, "cost_usd": 0.195}, {"day": "2026-10-04", "model": "gpt-4o", "calls": 19, "in_tok": 22108, "out_tok": 8058, "cost_usd": 0.1359}, {"day": "2026-10-04", "model": "claude-3-5-haiku", "calls": 29, "in_tok": 14886, "out_tok": 3527, "cost_usd": 0.026}, {"day": "2026-10-04", "model": "deepseek-chat", "calls": 27, "in_tok": 25746, "out_tok": 6598, "cost_usd": 0.0142}, {"day": "2026-10-04", "model": "gpt-4o-mini", "calls": 29, "in_tok": 17941, "out_tok": 5151, "cost_usd": 0.0058}, {"day": "2026-10-03", "model": "claude-3-5-sonnet", "calls": 27, "in_tok": 49480, "out_tok": 16738, "cost_usd": 0.3995}, {"day": "2026-10-03", "model": "gpt-4o", "calls": 24, "in_tok": 26622, "out_tok": 10573, "cost_usd": 0.1723}, {"day": "2026-10-03", "model": "o3-mini", "calls": 26, "in_tok": 40624, "out_tok": 22704, "cost_usd": 0.1446}, {"day": "2026-10-03", "model": "claude-3-5-haiku", "calls": 26, "in_tok": 14468, "out_tok": 3720, "cost_usd": 0.0265}, {"day": "2026-10-03", "model": "deepseek-chat", "calls": 31, "in_tok": 29966, "out_tok": 8244, "cost_usd": 0.0172}, {"day": "2026-10-03", "model": "gpt-4o-mini", "calls": 36, "in_tok": 27191, "out_tok": 8297, "cost_usd": 0.0091}, {"day": "2026-10-02", "model": "claude-3-5-sonnet", "calls": 22, "in_tok": 29926, "out_tok": 14299, "cost_usd": 0.3043}, {"day": "2026-10-02", "model": "gpt-4o", "calls": 29, "in_tok": 28807, "out_tok": 10977, "cost_usd": 0.1818}, {"day": "2026-10-02", "model": "o3-mini", "calls": 24, "in_tok": 30229, "out_tok": 18780, "cost_usd": 0.1159}, {"day": "2026-10-02", "model": "claude-3-5-haiku", "calls": 32, "in_tok": 21759, "out_tok": 5724, "cost_usd": 0.0403}, {"day": "2026-10-02", "model": "deepseek-chat", "calls": 24, "in_tok": 25340, "out_tok": 5967, "cost_usd": 0.0134}, {"day": "2026-10-02", "model": "gpt-4o-mini", "calls": 26, "in_tok": 21647, "out_tok": 5930, "cost_usd": 0.0068}, {"day": "2026-10-01", "model": "claude-3-5-sonnet", "calls": 26, "in_tok": 42711, "out_tok": 18062, "cost_usd": 0.3991}, {"day": "2026-10-01", "model": "gpt-4o", "calls": 28, "in_tok": 31104, "out_tok": 11977, "cost_usd": 0.1975}, {"day": "2026-10-01", "model": "o3-mini", "calls": 23, "in_tok": 34356, "out_tok": 17985, "cost_usd": 0.1169}, {"day": "2026-10-01", "model": "claude-3-5-haiku", "calls": 30, "in_tok": 20068, "out_tok": 4442, "cost_usd": 0.0338}, {"day": "2026-10-01", "model": "deepseek-chat", "calls": 19, "in_tok": 18314, "out_tok": 5377, "cost_usd": 0.0109}, {"day": "2026-10-01", "model": "gpt-4o-mini", "calls": 31, "in_tok": 23210, "out_tok": 7279, "cost_usd": 0.0079}, {"day": "2026-09-30", "model": "claude-3-5-sonnet", "calls": 18, "in_tok": 26249, "out_tok": 10936, "cost_usd": 0.2428}, {"day": "2026-09-30", "model": "gpt-4o", "calls": 16, "in_tok": 18057, "out_tok": 7210, "cost_usd": 0.1172}, {"day": "2026-09-30", "model": "o3-mini", "calls": 19, "in_tok": 28009, "out_tok": 14197, "cost_usd": 0.0933}, {"day": "2026-09-30", "model": "claude-3-5-haiku", "calls": 26, "in_tok": 15652, "out_tok": 4452, "cost_usd": 0.0303}, {"day": "2026-09-30", "model": "deepseek-chat", "calls": 21, "in_tok": 16985, "out_tok": 5601, "cost_usd": 0.0107}, {"day": "2026-09-30", "model": "gpt-4o-mini", "calls": 31, "in_tok": 25073, "out_tok": 6794, "cost_usd": 0.0078}], "p95 Latency Per Model (ms)": [{"model": "o3-mini", "calls": 169, "p95_ms": 5712.7}, {"model": "claude-3-5-sonnet", "calls": 152, "p95_ms": 5500.8}, {"model": "gpt-4o", "calls": 139, "p95_ms": 3557.9}, {"model": "gpt-4o-mini", "calls": 175, "p95_ms": 1995.4}, {"model": "claude-3-5-haiku", "calls": 174, "p95_ms": 1317.4}, {"model": "deepseek-chat", "calls": 151, "p95_ms": 1230.1}], "Error & Retry Rates Per Model": [{"day": "2026-10-06", "model": "claude-3-5-haiku", "total_calls": 12, "error_calls": 1, "error_rate_pct": 8.33, "retried_calls": 2, "retry_rate_pct": 16.67, "total_retries": 4}, {"day": "2026-10-06", "model": "claude-3-5-sonnet", "total_calls": 9, "error_calls": 1, "error_rate_pct": 11.11, "retried_calls": 1, "retry_rate_pct": 11.11, "total_retries": 3}, {"day": "2026-10-06", "model": "gpt-4o", "total_calls": 8, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 0, "retry_rate_pct": 0.0, "total_retries": 0}, {"day": "2026-10-06", "model": "deepseek-chat", "total_calls": 8, "error_calls": 2, "error_rate_pct": 25.0, "retried_calls": 2, "retry_rate_pct": 25.0, "total_retries": 6}, {"day": "2026-10-06", "model": "o3-mini", "total_calls": 7, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 1, "retry_rate_pct": 14.29, "total_retries": 3}, {"day": "2026-10-06", "model": "gpt-4o-mini", "total_calls": 6, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 0, "retry_rate_pct": 0.0, "total_retries": 0}, {"day": "2026-10-05", "model": "o3-mini", "total_calls": 37, "error_calls": 1, "error_rate_pct": 2.7, "retried_calls": 5, "retry_rate_pct": 13.51, "total_retries": 8}, {"day": "2026-10-05", "model": "claude-3-5-sonnet", "total_calls": 30, "error_calls": 1, "error_rate_pct": 3.33, "retried_calls": 5, "retry_rate_pct": 16.67, "total_retries": 14}, {"day": "2026-10-05", "model": "deepseek-chat", "total_calls": 29, "error_calls": 1, "error_rate_pct": 3.45, "retried_calls": 2, "retry_rate_pct": 6.9, "total_retries": 4}, {"day": "2026-10-05", "model": "claude-3-5-haiku", "total_calls": 29, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 1, "retry_rate_pct": 3.45, "total_retries": 1}, {"day": "2026-10-05", "model": "gpt-4o", "total_calls": 20, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 1, "retry_rate_pct": 5.0, "total_retries": 1}, {"day": "2026-10-05", "model": "gpt-4o-mini", "total_calls": 19, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 1, "retry_rate_pct": 5.26, "total_retries": 1}, {"day": "2026-10-04", "model": "o3-mini", "total_calls": 40, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 0, "retry_rate_pct": 0.0, "total_retries": 0}, {"day": "2026-10-04", "model": "gpt-4o-mini", "total_calls": 29, "error_calls": 2, "error_rate_pct": 6.9, "retried_calls": 4, "retry_rate_pct": 13.79, "total_retries": 9}, {"day": "2026-10-04", "model": "claude-3-5-haiku", "total_calls": 29, "error_calls": 3, "error_rate_pct": 10.34, "retried_calls": 8, "retry_rate_pct": 27.59, "total_retries": 16}, {"day": "2026-10-04", "model": "deepseek-chat", "total_calls": 27, "error_calls": 1, "error_rate_pct": 3.7, "retried_calls": 3, "retry_rate_pct": 11.11, "total_retries": 5}, {"day": "2026-10-04", "model": "claude-3-5-sonnet", "total_calls": 27, "error_calls": 3, "error_rate_pct": 11.11, "retried_calls": 5, "retry_rate_pct": 18.52, "total_retries": 12}, {"day": "2026-10-04", "model": "gpt-4o", "total_calls": 19, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 1, "retry_rate_pct": 5.26, "total_retries": 1}, {"day": "2026-10-03", "model": "gpt-4o-mini", "total_calls": 36, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 5, "retry_rate_pct": 13.89, "total_retries": 11}, {"day": "2026-10-03", "model": "deepseek-chat", "total_calls": 31, "error_calls": 2, "error_rate_pct": 6.45, "retried_calls": 3, "retry_rate_pct": 9.68, "total_retries": 8}, {"day": "2026-10-03", "model": "claude-3-5-sonnet", "total_calls": 27, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 3, "retry_rate_pct": 11.11, "total_retries": 9}, {"day": "2026-10-03", "model": "o3-mini", "total_calls": 26, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 2, "retry_rate_pct": 7.69, "total_retries": 6}, {"day": "2026-10-03", "model": "claude-3-5-haiku", "total_calls": 26, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 2, "retry_rate_pct": 7.69, "total_retries": 3}, {"day": "2026-10-03", "model": "gpt-4o", "total_calls": 24, "error_calls": 1, "error_rate_pct": 4.17, "retried_calls": 1, "retry_rate_pct": 4.17, "total_retries": 3}, {"day": "2026-10-02", "model": "claude-3-5-haiku", "total_calls": 32, "error_calls": 2, "error_rate_pct": 6.25, "retried_calls": 5, "retry_rate_pct": 15.63, "total_retries": 11}, {"day": "2026-10-02", "model": "gpt-4o", "total_calls": 29, "error_calls": 3, "error_rate_pct": 10.34, "retried_calls": 3, "retry_rate_pct": 10.34, "total_retries": 9}, {"day": "2026-10-02", "model": "gpt-4o-mini", "total_calls": 26, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 1, "retry_rate_pct": 3.85, "total_retries": 2}, {"day": "2026-10-02", "model": "o3-mini", "total_calls": 24, "error_calls": 3, "error_rate_pct": 12.5, "retried_calls": 3, "retry_rate_pct": 12.5, "total_retries": 9}, {"day": "2026-10-02", "model": "deepseek-chat", "total_calls": 24, "error_calls": 1, "error_rate_pct": 4.17, "retried_calls": 1, "retry_rate_pct": 4.17, "total_retries": 3}, {"day": "2026-10-02", "model": "claude-3-5-sonnet", "total_calls": 22, "error_calls": 1, "error_rate_pct": 4.55, "retried_calls": 1, "retry_rate_pct": 4.55, "total_retries": 3}, {"day": "2026-10-01", "model": "gpt-4o-mini", "total_calls": 31, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 3, "retry_rate_pct": 9.68, "total_retries": 5}, {"day": "2026-10-01", "model": "claude-3-5-haiku", "total_calls": 30, "error_calls": 2, "error_rate_pct": 6.67, "retried_calls": 4, "retry_rate_pct": 13.33, "total_retries": 9}, {"day": "2026-10-01", "model": "gpt-4o", "total_calls": 28, "error_calls": 1, "error_rate_pct": 3.57, "retried_calls": 1, "retry_rate_pct": 3.57, "total_retries": 3}, {"day": "2026-10-01", "model": "claude-3-5-sonnet", "total_calls": 26, "error_calls": 1, "error_rate_pct": 3.85, "retried_calls": 1, "retry_rate_pct": 3.85, "total_retries": 3}, {"day": "2026-10-01", "model": "o3-mini", "total_calls": 23, "error_calls": 2, "error_rate_pct": 8.7, "retried_calls": 4, "retry_rate_pct": 17.39, "total_retries": 11}, {"day": "2026-10-01", "model": "deepseek-chat", "total_calls": 19, "error_calls": 1, "error_rate_pct": 5.26, "retried_calls": 2, "retry_rate_pct": 10.53, "total_retries": 4}, {"day": "2026-09-30", "model": "gpt-4o-mini", "total_calls": 31, "error_calls": 1, "error_rate_pct": 3.23, "retried_calls": 5, "retry_rate_pct": 16.13, "total_retries": 11}, {"day": "2026-09-30", "model": "claude-3-5-haiku", "total_calls": 26, "error_calls": 2, "error_rate_pct": 7.69, "retried_calls": 5, "retry_rate_pct": 19.23, "total_retries": 9}, {"day": "2026-09-30", "model": "deepseek-chat", "total_calls": 21, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 0, "retry_rate_pct": 0.0, "total_retries": 0}, {"day": "2026-09-30", "model": "o3-mini", "total_calls": 19, "error_calls": 1, "error_rate_pct": 5.26, "retried_calls": 2, "retry_rate_pct": 10.53, "total_retries": 6}, {"day": "2026-09-30", "model": "claude-3-5-sonnet", "total_calls": 18, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 0, "retry_rate_pct": 0.0, "total_retries": 0}, {"day": "2026-09-30", "model": "gpt-4o", "total_calls": 16, "error_calls": 0, "error_rate_pct": 0.0, "retried_calls": 3, "retry_rate_pct": 18.75, "total_retries": 6}], "Top 10 Most Expensive Tags": [{"tag": "customer-support", "calls": 168, "in_tok": 172935, "out_tok": 71930, "total_cost_usd": 0.8005, "avg_cost_usd": 0.004881}, {"tag": "translation", "calls": 172, "in_tok": 179089, "out_tok": 68305, "total_cost_usd": 0.7839, "avg_cost_usd": 0.00478}, {"tag": "agent-planner", "calls": 177, "in_tok": 190772, "out_tok": 70906, "total_cost_usd": 0.7829, "avg_cost_usd": 0.004578}, {"tag": "rag-retrieval", "calls": 153, "in_tok": 163727, "out_tok": 68729, "total_cost_usd": 0.7362, "avg_cost_usd": 0.004974}, {"tag": "code-eval", "calls": 164, "in_tok": 168015, "out_tok": 68194, "total_cost_usd": 0.7298, "avg_cost_usd": 0.004739}, {"tag": "summarizer", "calls": 166, "in_tok": 181871, "out_tok": 64920, "total_cost_usd": 0.6782, "avg_cost_usd": 0.004266}], "Slowest 20 Calls": [{"id": 885, "ts_utc": "2026-10-02T00:44:21.475755+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 13619.6, "attempts": 1, "status": "ok", "tag": "translation"}, {"id": 88, "ts_utc": "2026-10-03T01:43:58.433152+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 10267.0, "attempts": 4, "status": "ok", "tag": "agent-planner"}, {"id": 245, "ts_utc": "2026-09-30T07:21:53.911432+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 10000.1, "attempts": 1, "status": "ok", "tag": "summarizer"}, {"id": 634, "ts_utc": "2026-10-05T04:17:01.589732+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 8753.3, "attempts": 4, "status": "ok", "tag": "code-eval"}, {"id": 774, "ts_utc": "2026-10-03T08:55:16.557747+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 7638.0, "attempts": 1, "status": "ok", "tag": "agent-planner"}, {"id": 948, "ts_utc": "2026-10-03T01:02:16.592788+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 7273.6, "attempts": 1, "status": "ok", "tag": "customer-support"}, {"id": 663, "ts_utc": "2026-10-01T12:58:01.491700+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 7113.5, "attempts": 1, "status": "ok", "tag": "code-eval"}, {"id": 687, "ts_utc": "2026-09-30T17:25:19.840970+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 7112.3, "attempts": 1, "status": "ok", "tag": "code-eval"}, {"id": 962, "ts_utc": "2026-10-06T01:38:33.650042+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 6803.3, "attempts": 1, "status": "ok", "tag": "agent-planner"}, {"id": 233, "ts_utc": "2026-10-04T05:24:06.138270+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 6364.0, "attempts": 1, "status": "ok", "tag": "code-eval"}, {"id": 189, "ts_utc": "2026-10-05T22:40:52.513929+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 6265.3, "attempts": 1, "status": "ok", "tag": "agent-planner"}, {"id": 741, "ts_utc": "2026-10-01T16:35:35.621211+00:00", "provider": "openai", "model": "gpt-4o", "latency_ms": 5970.9, "attempts": 1, "status": "ok", "tag": "agent-planner"}, {"id": 221, "ts_utc": "2026-10-03T01:27:35.667790+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 5888.7, "attempts": 4, "status": "ok", "tag": "summarizer"}, {"id": 318, "ts_utc": "2026-10-05T03:59:20.015169+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 5875.1, "attempts": 1, "status": "ok", "tag": "code-eval"}, {"id": 443, "ts_utc": "2026-10-01T06:09:04.535900+00:00", "provider": "openai", "model": "gpt-4o", "latency_ms": 5786.0, "attempts": 1, "status": "ok", "tag": "summarizer"}, {"id": 934, "ts_utc": "2026-10-01T04:11:23.405604+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 5758.7, "attempts": 4, "status": "ok", "tag": "agent-planner"}, {"id": 105, "ts_utc": "2026-10-01T17:01:51.798638+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 5716.6, "attempts": 1, "status": "ok", "tag": "rag-retrieval"}, {"id": 719, "ts_utc": "2026-10-06T04:46:56.845638+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 5712.7, "attempts": 1, "status": "ok", "tag": "code-eval"}, {"id": 178, "ts_utc": "2026-10-02T11:45:26.599210+00:00", "provider": "openai", "model": "o3-mini", "latency_ms": 5645.8, "attempts": 4, "status": "error", "tag": "code-eval"}, {"id": 540, "ts_utc": "2026-10-04T21:47:06.250815+00:00", "provider": "anthropic", "model": "claude-3-5-sonnet", "latency_ms": 5500.8, "attempts": 1, "status": "ok", "tag": "translation"}], "Rate Limit Incidents (Hourly)": [{"hour_utc": "2026-10-06 03:00", "incidents": 2, "total_retries": 6, "rate_limit_errors": 2}, {"hour_utc": "2026-10-06 02:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-06 01:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-06 00:00", "incidents": 2, "total_retries": 4, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 18:00", "incidents": 2, "total_retries": 4, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 15:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-05 13:00", "incidents": 1, "total_retries": 2, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 12:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 11:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-05 10:00", "incidents": 1, "total_retries": 2, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 07:00", "incidents": 1, "total_retries": 1, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 06:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-05 04:00", "incidents": 3, "total_retries": 5, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 02:00", "incidents": 1, "total_retries": 1, "rate_limit_errors": 0}, {"hour_utc": "2026-10-05 00:00", "incidents": 2, "total_retries": 2, "rate_limit_errors": 0}, {"hour_utc": "2026-10-04 23:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-04 21:00", "incidents": 2, "total_retries": 6, "rate_limit_errors": 1}, {"hour_utc": "2026-10-04 20:00", "incidents": 2, "total_retries": 2, "rate_limit_errors": 0}, {"hour_utc": "2026-10-04 18:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 0}, {"hour_utc": "2026-10-04 17:00", "incidents": 1, "total_retries": 1, "rate_limit_errors": 0}, {"hour_utc": "2026-10-04 16:00", "incidents": 2, "total_retries": 6, "rate_limit_errors": 2}, {"hour_utc": "2026-10-04 15:00", "incidents": 2, "total_retries": 2, "rate_limit_errors": 0}, {"hour_utc": "2026-10-04 13:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}, {"hour_utc": "2026-10-04 12:00", "incidents": 1, "total_retries": 3, "rate_limit_errors": 1}]};
+
+        function renderTable(containerId, rows) {
+            const el = document.getElementById(containerId);
+            if (!rows || rows.length === 0) {
+                el.innerHTML = "<p style='color:#8b949e'>No records found</p>";
+                return;
+            }
+            const cols = Object.keys(rows[0]);
+            let html = "<table><thead><tr>" + cols.map(c => `<th>${c}</th>`).join("") + "</tr></thead><tbody>";
+            for (const r of rows) {
+                html += "<tr>" + cols.map(c => {
+                    const val = r[c] ?? "-";
+                    const isNum = typeof val === 'number';
+                    const isCost = c.includes('cost');
+                    const cls = isCost ? 'num cost' : (isNum ? 'num' : '');
+                    return `<td class="${cls}">${isCost && typeof val === 'number' ? '$' + val.toFixed(4) : val}</td>`;
+                }).join("") + "</tr>";
+            }
+            html += "</tbody></table>";
+            el.innerHTML = html;
+        }
+
+        renderTable('cost-table-container', data['Cost & Volume Per Day']);
+        renderTable('p95-table-container', data['p95 Latency Per Model (ms)']);
+        renderTable('tags-table-container', data['Top 10 Most Expensive Tags']);
+        renderTable('errors-table-container', data['Error & Retry Rates Per Model']);
+    </script>
+</body>
+</html>

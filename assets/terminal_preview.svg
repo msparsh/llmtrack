@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" width="100%" height="680" fill="none">
+  <defs>
+    <linearGradient id="term-header" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#21262d" />
+      <stop offset="100%" stop-color="#161b22" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <!-- Terminal Outer Frame -->
+    <rect x="20" y="20" width="960" height="640" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="1.5" />
+    
+    <!-- Title Bar -->
+    <rect x="20" y="20" width="960" height="42" rx="12" fill="url(#term-header)" />
+    <rect x="20" y="50" width="960" height="12" fill="url(#term-header)" />
+    <line x1="20" y1="62" x2="980" y2="62" stroke="#30363d" stroke-width="1" />
+
+    <!-- Window Controls -->
+    <circle cx="44" cy="41" r="6" fill="#ff5f56" stroke="#e0443e" stroke-width="0.5" />
+    <circle cx="64" cy="41" r="6" fill="#ffbd2e" stroke="#dea123" stroke-width="0.5" />
+    <circle cx="84" cy="41" r="6" fill="#27c93f" stroke="#1aab29" stroke-width="0.5" />
+
+    <!-- Terminal Title -->
+    <text x="500" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500" fill="#8b949e" text-anchor="middle">
+      user@devbox: ~/llmtrack — llmtrack report --since 7d
+    </text>
+  </g>
+
+  <!-- Terminal Content -->
+  <g transform="translate(48, 95)" font-family="'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace" font-size="13" line-height="1.5">
+    
+    <!-- Prompt Command -->
+    <text x="0" y="0" fill="#7ee787" font-weight="bold">$</text>
+    <text x="18" y="0" fill="#f0f6fc">llmtrack report --since 7d</text>
+
+    <!-- Table 1: Cost & Volume Per Day -->
+    <text x="0" y="32" fill="#79c0ff" font-weight="bold">=== Cost &amp; Volume Per Day ===</text>
+    
+    <text x="0" y="56" fill="#8b949e">day        | model             | calls | in_tok  | out_tok | cost_usd</text>
+    <text x="0" y="74" fill="#30363d">-----------+-------------------+-------+---------+---------+---------</text>
+    <text x="0" y="94" fill="#c9d1d9">2026-10-06 | claude-3-5-sonnet |    84 |  142,320|   48,910| </text><text x="440" y="94" fill="#7ee787" font-weight="bold">$1.1606</text>
+    <text x="0" y="114" fill="#c9d1d9">2026-10-06 | gpt-4o            |    78 |  112,850|   38,400| </text><text x="440" y="114" fill="#7ee787" font-weight="bold">$0.6661</text>
+    <text x="0" y="134" fill="#c9d1d9">2026-10-06 | o3-mini           |    65 |   98,200|   42,100| </text><text x="440" y="134" fill="#7ee787" font-weight="bold">$0.2933</text>
+    <text x="0" y="154" fill="#c9d1d9">2026-10-06 | gpt-4o-mini       |    92 |   74,100|   19,200| </text><text x="440" y="154" fill="#7ee787" font-weight="bold">$0.0226</text>
+
+    <!-- Table 2: p95 Latency -->
+    <text x="0" y="196" fill="#79c0ff" font-weight="bold">=== p95 Latency Per Model (ms) ===</text>
+    
+    <text x="0" y="220" fill="#8b949e">model             | calls | p95_ms   | SLA Status</text>
+    <text x="0" y="238" fill="#30363d">------------------+-------+----------+-----------</text>
+    <text x="0" y="258" fill="#c9d1d9">o3-mini           |   110 |  6,450 ms| </text><text x="325" y="258" fill="#e3b341">● High Reasoning</text>
+    <text x="0" y="278" fill="#c9d1d9">claude-3-5-sonnet |   148 |  3,890 ms| </text><text x="325" y="278" fill="#7ee787">● Optimal</text>
+    <text x="0" y="298" fill="#c9d1d9">gpt-4o            |   124 |  2,450 ms| </text><text x="325" y="298" fill="#7ee787">● Optimal</text>
+    <text x="0" y="318" fill="#c9d1d9">gpt-4o-mini       |   118 |    780 ms| </text><text x="325" y="318" fill="#7ee787">● Fast</text>
+
+    <!-- Table 3: Error & Retry Rates -->
+    <text x="0" y="360" fill="#79c0ff" font-weight="bold">=== Error &amp; Retry Rates Per Model ===</text>
+    
+    <text x="0" y="384" fill="#8b949e">model             | total | error_pct | retried_pct | retries_total</text>
+    <text x="0" y="402" fill="#30363d">------------------+-------+-----------+-------------+--------------</text>
+    <text x="0" y="422" fill="#c9d1d9">claude-3-5-sonnet |   148 | </text><text x="184" y="422" fill="#7ee787">2.7%</text><text x="216" y="422" fill="#c9d1d9">     | </text><text x="280" y="422" fill="#e3b341">8.1%</text><text x="312" y="422" fill="#c9d1d9">        | 16</text>
+    <text x="0" y="442" fill="#c9d1d9">gpt-4o            |   124 | </text><text x="184" y="442" fill="#7ee787">1.6%</text><text x="216" y="442" fill="#c9d1d9">     | </text><text x="280" y="442" fill="#e3b341">7.2%</text><text x="312" y="442" fill="#c9d1d9">        | 11</text>
+    <text x="0" y="462" fill="#c9d1d9">o3-mini           |   110 | </text><text x="184" y="462" fill="#ffa198">4.5%</text><text x="216" y="462" fill="#c9d1d9">     | </text><text x="280" y="462" fill="#e3b341">11.8%</text><text x="312" y="462" fill="#c9d1d9">       | 21</text>
+
+    <!-- Table 4: Top Tags -->
+    <text x="0" y="504" fill="#79c0ff" font-weight="bold">=== Top 10 Most Expensive Tags ===</text>
+    <text x="0" y="528" fill="#8b949e">tag               | calls | total_cost | avg_cost</text>
+    <text x="0" y="546" fill="#30363d">------------------+-------+------------+---------</text>
+    <text x="0" y="566" fill="#c9d1d9">agent-planner     |   177 | </text><text x="184" y="566" fill="#7ee787">$0.7829</text><text x="240" y="566" fill="#c9d1d9">   | $0.0044</text>
+    <text x="0" y="586" fill="#c9d1d9">rag-retrieval     |   153 | </text><text x="184" y="586" fill="#7ee787">$0.7362</text><text x="240" y="586" fill="#c9d1d9">   | $0.0048</text>
+  </g>
+</svg>
