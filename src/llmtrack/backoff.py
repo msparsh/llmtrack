@@ -82,9 +82,13 @@ def get_retry_after(exc: BaseException) -> Optional[float]:
             except (ValueError, TypeError):
                 pass
 
-    # Check error message for patterns like "retry after 3.5 seconds"
+    # Check error message for patterns like "retry after 3.5 seconds" or "try again in 2s"
     msg = str(exc)
-    match = re.search(r"retry\s+after\s+(\d+(?:\.\d+)?)\s*(?:s|sec|seconds)?", msg, re.IGNORECASE)
+    match = re.search(
+        r"(?:retry\s+after|try\s+again\s+in)\s+(\d+(?:\.\d+)?)\s*(?:s|sec|seconds)?",
+        msg,
+        re.IGNORECASE,
+    )
     if match:
         try:
             return float(match.group(1))
