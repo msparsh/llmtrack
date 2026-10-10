@@ -7,7 +7,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/msparsh/llmtrack/actions"><img src="https://img.shields.io/badge/CI-passing-34d399?style=flat-square&logo=githubactions&logoColor=white" alt="CI" /></a>
   <a href="https://pypi.org/project/llmtrack"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.14-blue?style=flat-square&logo=python&logoColor=white" alt="Python" /></a>
   <a href="https://sqlite.org/"><img src="https://img.shields.io/badge/Storage-SQLite_WAL-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite" /></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff" /></a>
