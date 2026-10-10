@@ -59,3 +59,25 @@ def test_missing_attributes_fallback():
     assert model is None
     assert inp is None
     assert out is None
+
+
+def test_gemini_extraction():
+    resp = SimpleNamespace(
+        model="gemini-2.0-flash",
+        usage_metadata=SimpleNamespace(prompt_token_count=120, candidates_token_count=45),
+    )
+    model, inp, out = extract_usage(resp, provider="gemini")
+    assert model == "gemini-2.0-flash"
+    assert inp == 120
+    assert out == 45
+
+
+def test_deepseek_extraction():
+    resp = {
+        "model": "deepseek-chat",
+        "usage": {"prompt_tokens": 80, "completion_tokens": 160},
+    }
+    model, inp, out = extract_usage(resp, provider="deepseek")
+    assert model == "deepseek-chat"
+    assert inp == 80
+    assert out == 160

@@ -95,9 +95,46 @@ def extract_generic(resp: Any) -> UsageTuple:
     return model, input_tokens, output_tokens
 
 
+def extract_gemini(resp: Any) -> UsageTuple:
+    """Extract model, input_tokens, output_tokens from a Google Gemini response or dict."""
+    model: Optional[str] = None
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
+
+    if isinstance(resp, dict):
+        model = resp.get("model") or resp.get("modelVersion") or resp.get("model_version")
+        usage = resp.get("usage_metadata") or resp.get("usageMetadata") or resp.get("usage")
+        if isinstance(usage, dict):
+            input_tokens = usage.get("prompt_token_count") or usage.get("promptTokenCount")
+            output_tokens = usage.get("candidates_token_count") or usage.get("candidatesTokenCount")
+    else:
+        model = getattr(resp, "model", None) or getattr(resp, "model_version", None)
+        usage = (
+            getattr(resp, "usage_metadata", None)
+            or getattr(resp, "usageMetadata", None)
+            or getattr(resp, "usage", None)
+        )
+        if usage is not None:
+            if isinstance(usage, dict):
+                input_tokens = usage.get("prompt_token_count") or usage.get("promptTokenCount")
+                output_tokens = usage.get("candidates_token_count") or usage.get("candidatesTokenCount")
+            else:
+                input_tokens = getattr(usage, "prompt_token_count", None) or getattr(
+                    usage, "promptTokenCount", None
+                )
+                output_tokens = getattr(usage, "candidates_token_count", None) or getattr(
+                    usage, "candidatesTokenCount", None
+                )
+
+    return model, input_tokens, output_tokens
+
+
 REGISTRY: dict[str, ExtractorCallable] = {
     "anthropic": extract_anthropic,
     "openai": extract_openai,
+    "deepseek": extract_openai,
+    "gemini": extract_gemini,
+    "google": extract_gemini,
     "generic": extract_generic,
 }
 
@@ -136,6 +173,11 @@ def extract_usage(
 
     if "openai" in mod_name or "completion" in type_name:
         res = extract_openai(resp)
+        if res[0] is not None or res[1] is not None:
+            return res
+
+    if "gemini" in mod_name or "google" in mod_name or "generative" in mod_name:
+        res = extract_gemini(resp)
         if res[0] is not None or res[1] is not None:
             return res
 
