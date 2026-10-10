@@ -91,6 +91,9 @@ class PricingTable:
                 )
             return None
 
+        if input_tokens is None and output_tokens is None:
+            return None
+
         in_rate, out_rate = rates
         inp = input_tokens or 0
         out = output_tokens or 0
