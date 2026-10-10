@@ -81,9 +81,9 @@ class Span:
         self._token: Any = None
 
     def __enter__(self) -> "Span":
+        self.tracker._check_budget()
         self.start_time = time.perf_counter()
         self._token = _current_span.set(self)
-        self.tracker._check_budget()
         return self
 
     def __exit__(
