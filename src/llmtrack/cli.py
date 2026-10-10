@@ -52,16 +52,18 @@ def parse_since(since_str: Optional[str]) -> Optional[str]:
     now = datetime.now(timezone.utc)
 
     # Check for unit suffixes
-    match = re.match(r"^(\d+)\s*(d|h|m|w)$", s)
+    match = re.match(r"^(\d+)\s*(s|m|h|d|w)$", s)
     if match:
         val = int(match.group(1))
         unit = match.group(2)
-        if unit == "d":
-            cutoff = now - timedelta(days=val)
-        elif unit == "h":
-            cutoff = now - timedelta(hours=val)
+        if unit == "s":
+            cutoff = now - timedelta(seconds=val)
         elif unit == "m":
             cutoff = now - timedelta(minutes=val)
+        elif unit == "h":
+            cutoff = now - timedelta(hours=val)
+        elif unit == "d":
+            cutoff = now - timedelta(days=val)
         elif unit == "w":
             cutoff = now - timedelta(weeks=val)
         else:
